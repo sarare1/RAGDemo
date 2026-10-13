@@ -144,7 +144,7 @@ st.title("📄 Cloud RAG Demo")
 
 st.sidebar.header("Settings")
 embed_model = st.sidebar.text_input("Embedding model", "gemini-embedding-001")
-llm_model = st.sidebar.text_input("Chat model", "gemini-2.5-flash")
+llm_model = st.sidebar.text_input("Chat model", "gemini-3.8-flash")
 chunk_size = st.sidebar.slider("Chunk size", 200, 2000, 500, step=100)
 overlap = st.sidebar.slider("Overlap", 0, 400, 50, step=25)
 top_k = st.sidebar.slider("Top-k", 1, 10, 3)
