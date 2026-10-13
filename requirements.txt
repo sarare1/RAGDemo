@@ -4,3 +4,4 @@ faiss-cpu
 pypdf
 python-docx
 numpy
+google-genai
