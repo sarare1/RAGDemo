@@ -1,0 +1,53 @@
+Build a simple, beginner-friendly RAG (Retrieval-Augmented Generation) demo app that runs 100% locally in VS Code. 
+No API keys, no cloud, no agents, no LangChain/LlamaIndex, no frameworks beyond what is listed. Plain Python functions only.
+
+## Tech stack
+- Python 3.10+
+- Streamlit (UI)
+- Ollama (local server) via the `ollama` Python package
+  - Embedding model: `nomic-embed-text`
+  - Chat model: `llama3.2`
+- FAISS (`faiss-cpu`) for vector search
+- `pypdf`, `python-docx` for reading files
+- `numpy`
+
+## Project structure (keep it minimal)
+- `app.py`: the entire app, one file
+- `requirements.txt`
+- `README.md`: short setup and run steps
+
+## The pipeline (implement each as a small, separate, well-commented function)
+1. `extract_text(file_bytes, filename)`: supports PDF, DOCX, TXT. Return one big string.
+2. `chunk_text(text, chunk_size, overlap)`: character-based sliding window; strip each chunk, skip empty ones; step forward by `chunk_size - overlap`.
+3. `embed_text(text, embed_model)` and `embed_chunks(chunks, embed_model, on_progress=None)`: call `ollama.embeddings(...)`, return a float32 numpy array.
+4. `build_faiss_index(vectors)`: L2-normalize the vectors, then use `faiss.IndexFlatIP` (inner product = cosine similarity).
+5. `retrieve_chunks(question, embed_model, index, chunks, top_k)`: embed and normalize the question, search the index, and return a list of `{"text", "score"}`; skip `-1` positions.
+6. `generate_answer(question, retrieved_chunks, llm_model, temperature)`: join the chunks with `\n\n---\n\n` and send them to `ollama.chat` with this grounding prompt:
+
+   "Answer the question using ONLY the context below. If the answer isn't in the context, say \"I don't know based on this document.\"\n\nContext:\n{context}\n\nQuestion: {question}"
+
+## Streamlit UI
+- Sidebar, "Settings":
+  - text inputs: Embedding model (default `nomic-embed-text`), Chat model (default `llama3.2`)
+  - sliders: Chunk size (200–2000, step 100, default 500), Overlap (0–400, step 25, default 50), Top-k (1–10, default 3), Temperature (0.0–1.0, step 0.1, default 0.2)
+- Main page:
+  1. File uploader (pdf, docx, txt) + "Process Document" button. On click: extract, chunk, embed with a progress bar, build the index, then show "Done: N chunks indexed".
+  2. Question text box + "Ask" button. Show the answer, then an expander or section listing the retrieved chunks with their similarity scores (3 decimals).
+- Store chunks, index, doc name and the embedding model used in `st.session_state`.
+- Friendly validation messages: no file chosen, no text found in file, document not processed yet, question empty, embedding model changed after processing (ask the user to re-process).
+- Catch Ollama connection errors and "model not found" errors and show a clear fix message (e.g., "Run `ollama serve`" or "Run `ollama pull <model>`").
+
+## Code style
+- Simple and readable; short docstrings and a comment per step so it can be used for teaching.
+- No classes unless truly needed, no async, no over-engineering, no extra features.
+
+## README should include
+1. Install Ollama (https://ollama.com), then run `ollama pull llama3.2` and `ollama pull nomic-embed-text`
+2. Create and activate a virtual environment (Windows PowerShell commands)
+3. `pip install -r requirements.txt`
+4. `streamlit run app.py`
+5. A short troubleshooting table (connection error, model not found, slow on CPU)
+
+When done, give me the exact commands to run it, and do a quick sanity test with a small .txt file.
+````
+

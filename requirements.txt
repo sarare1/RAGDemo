@@ -1,0 +1,6 @@
+streamlit
+ollama
+faiss-cpu
+pypdf
+python-docx
+numpy
